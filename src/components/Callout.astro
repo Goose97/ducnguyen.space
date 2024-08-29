@@ -1,0 +1,21 @@
+---
+import classNames from 'classnames'
+
+interface Props {
+  title: string
+  className?: string
+}
+
+const { title, className } = Astro.props
+---
+
+<aside
+  class={classNames(
+    "px-8 py-6 mt-8 mb-12 text-base leading-7 bg-white-100 border-l-primary-700 border-l-4 rounded-r-md",
+    "[&>p]:mb-4 [&>p:last-child]:mb-0",
+    className,
+  )}
+>
+  <strong class="block mb-4">{title}</strong>
+  <slot />
+</aside>

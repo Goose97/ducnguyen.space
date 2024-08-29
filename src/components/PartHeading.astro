@@ -1,0 +1,13 @@
+---
+type Props = {
+  part: number
+  text: string
+}
+
+const { part, text } = Astro.props
+---
+
+<h1 class="my-12">
+  <div>Part {part}</div>
+  <div class="text-4xl font-bold">{text}</div>
+</h1>

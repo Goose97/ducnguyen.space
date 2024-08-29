@@ -1,0 +1,251 @@
+---
+---
+
+import { Image } from 'astro:assets';
+import Callout from "@components/Callout.astro";
+import Layout from "@layouts/Layout.astro";
+import PartHeading from "@components/PartHeading.astro";
+import AnimationVideo from "@components/preact/AnimationVideo";
+import TableOfContents from "@components/preact/TableOfContents";
+import ChapterLink from "@components/ChapterLink.astro";
+import slottedPage from '@images/slotted-page.png';
+import slottedPageFragmentation from '@images/slotted-page-fragmentation.png';
+
+<Layout stickyAsideId="sticky-aside">
+<div slot="aside" id="sticky-aside" class="sticky mt-12">
+  <TableOfContents
+    headings={[
+      {
+        depth: 2,
+        slug: 'data-structure-for-disk',
+        text: 'Data structure for disk'
+      },
+      { depth: 3, slug: 'low-height', text: 'Low height' },
+      { depth: 3, slug: 'high-fanout', text: 'High fanout' },
+      {
+        depth: 3,
+        slug: 'b-tree-is-a-good-fit',
+        text: 'B-Tree is a good fit'
+      },
+      {
+        depth: 2,
+        slug: 'modifications-for-databases',
+        text: 'Modifications for databases'
+      },
+      {
+        depth: 3,
+        slug: 'variable-size-records',
+        text: 'Variable size records'
+      },
+      { depth: 3, slug: 'concurrency', text: 'Concurrency' }
+    ]}
+    client:only="preact"
+  />
+  <div class="mt-4 flex justify-between text-base text-stone-600">
+    <a href="/btree-chronical/basics" class="hover:underline underline-offset-4">« Part 1</a>
+    <a href="/btree-chronical/variations" class="hover:underline underline-offset-4">Part 3 »</a>
+  </div>
+</div>
+
+<PartHeading text="Databases" part={2} />
+
+B-Tree is ubiquitous and appears everywhere, especially in the database realm.
+You can find a B-Tree implementation in almost every database nowadays,
+typically used for indexing. But why is that?
+
+<Callout title="Memory vs Disk storage">
+  <p>Memory-based and disk-based storage have vastly different characteristics.
+    We will discuss only the case when data is too big to fit into memory and
+    has to store on disk. This scenario highlights the strength of B-Tree.</p>
+</Callout>
+
+## Data structure for disk
+
+### Low height
+
+If you look at the anatomy of the lookup process of tree data structures (binary
+tree or B-Tree), there are two primary operations: comparison and pointer
+reference. At each level, you perform some comparisons to determine the next
+subtree. Then, you reference to the pointer to read the subtree.
+
+The cost of comparison stays relatively constant, while the cost of pointer
+reference relies on the storage medium. Disk access is several orders of
+magnitude slower than memory access, making the cost of pointer references
+the dominant part. When designing data structures for disk-based
+storage, minimizing storage access is crucial. Often times, the number of
+storage accesses is proportional to the tree height. A data structure with
+**low height** is a desired property.
+
+### High fanout
+<p>
+  Disk storage is represented as
+  <a
+    href="https://en.wikipedia.org/wiki/Device_file#Block_devices"
+    rel="noopener noreferrer"
+    target="_blank"
+    class="link">block devices</a>.
+  It organizes data into fixed-sized blocks (typically 4 KB), and each
+  block has a unique address. Read and write operations are performed on entire
+  blocks. Which means, to read/write a single byte, you must read/write the
+  whole block containing it. This contrasts with character devices, which you
+  can operate on byte or character level.
+</p>
+
+Let's look at binary tree. With each pointer reference, we will read a node,
+which contains two children pointers. We can give a rough estimate of the node
+size: 128 bytes (a node value and two pointers). As we mention above, we must
+read the entire block (i.e. 4 KB). What should we do with the remaining bytes.
+How can we best utilize it?
+
+One idea is to pack as much **relevant** data as possible into a single block.
+Relevant is a loosely defined term. Let's say, two pieces of data, A and
+B, are relevant. If A is accessed, B is likely to be accessed soon after, and
+vice versa. We say that a data structure has better *data locality*
+if relevant data are placed in close proximity on the storage medium.
+
+If the problem with binary tree is that it has too few children, how about we
+crank it up? A **higher fanout** leads to more keys per node, which can better
+utilize the disk block. Neighboring keys are relevant to each other, especially
+when performing range scan operation.
+
+### B-Tree is a good fit
+
+To recap, we want a data structure with:
+
+<ul class="list-disc pl-10">
+  <li><strong>Low height</strong> to minimize disk accesses.</li>
+  <li><strong>High fanout</strong> to improve data locality.</li>
+</ul>
+
+<Callout title="Height and fanout">
+  <p>Height and fanout are inversely correlated: the higher the fanout, the
+    lower the height. If the fanout is high, each node can hold more children,
+    thus requiring fewer levels to hold the entire amount of keys.</p>
+</Callout>
+
+B-Tree checks both of these boxes. Also, B-Tree is a self-balancing structure,
+ensuring consistent performance for all operations. To maximize the I/O
+efficiency, the node size of B-Tree should align with block device size. For
+example, if the block size is 4 KB, the node size can be 4 KB (most common), or
+8 KB, 16 KB, … (less common).
+
+Another point in favor of B-Tree: It's an **ordered data structure**. It can
+efficiently support range scan query, which is common in databases.
+
+## Modifications for databases
+
+B-Tree is a good fit for databases. However, we need to make some adjustments
+to work in the database context.
+
+### Variable size records
+
+In Part 1, we only talked about B-Tree with fixed-size keys and values. For
+databases, we need to handle variable-size data. Our current design has a few
+issues:
+
+<ul class="list-disc pl-10">
+  <li>We perform binary search to look for keys in the nodes. It won’t work if
+    the key sizes are different.</li>
+  <li>We should maintain the keys in sorted order. Keeping an array of
+    different size elements sorted is a big hassle.</li>
+</ul>
+
+One solution a lot of database implementations employ is introducing a layer of
+indirection. We divide a node into two sections; one stores the keys and
+associated data, and the other stores the pointer to the keys. We also reserve
+some space for metadata about the node in the page header.
+
+<Image src={slottedPage} alt="An illustration of slotted page disk representation" class="custom-image" />
+
+The pointers section starts from the left end. The cells section, where keys
+and associated data are stored, starts from the right end. The pointers store the
+byte offset of the cells. They’re analogous to the pointers in the traditional
+sense, but instead of pointing to a memory address, they point to a location on
+the node.
+
+Let’s examine how the basic operations should update to adapt with this new change:
+
+<ul class="list-disc pl-10">
+  <li><b>Insert</b>: Upon insertions, the pointers section grows to the right,
+    whereas the cells section grows to the left. Remember, we need to keep the
+    pointers section sorted, so after insert, some ordering is necessary. But
+    luckily, the pointers are fixed size, so they’ll be easier to handle, and we
+    don’t have to touch the cell section.</li>
+</ul>
+
+<div class="pl-10">
+  <AnimationVideo
+    src="/videos/slotted-page-insert.mp4"
+    keyMoments={[
+      { time: 1.5, text: "Insert cell 37" },
+      { time: 4, text: "Rearrange pointers" },
+      { time: 7, text: "Insert cell 28" },
+      { time: 10, text: "Rearrange pointers" },
+    ]}
+    client:load
+  />
+</div>
+
+<ul class="list-disc pl-10">
+  <li><b>Lookup</b>: We still perform binary search as normal, but this time we
+    need to follow the pointers to examine the keys.</li>
+  <li><b>Delete</b>: Delete is probably even easier. Just delete the pointer
+    and shift all pointers behind backward. The cell can be left as-is and
+    considered as free space.</li>
+</ul>
+
+There’s still a small caveat we need to take care of. When deleting cells, we
+leave some “holes” behind. These holes, while technically free spaces, can
+make the page fragmented and reduce the storage efficiency.
+
+<figure class="my-8 max-w-md mx-auto">
+  <Image
+    src={slottedPageFragmentation}
+    alt="An illustration of slotted page fragmentation"
+    class="mb-4"
+  />
+  <figcaption class="text-center text-sm italic">We cannot fit the new key, even though we have enough space.</figcaption>
+</figure>
+
+We can fix this in a few ways:
+
+<ul class="list-disc pl-10">
+  <li>Defragment the page by repacking the cells.</li>
+  <li>Try to reuse free spaces when performing inserts.</li>
+</ul>
+
+<p>
+  The first option is too expensive to do on every insert. To amortize the cost,
+  we can leave the holes to build up and perform a big repacking every once in a
+  while (or have a background thread perform maintenance periodically). Reusing
+  free spaces also helps but requires a mechanism to keep track of them
+  (SQLite calls it the
+  <a
+    href="https://www.sqlite.org/fileformat.html#b_tree_pages"
+    rel="noopener noreferrer"
+    target="_blank"
+    class="link">freeblock</a>).
+</p>
+
+### Concurrency
+
+Databases must support concurrency accesses to B-Tree, both reads and writes. The current design is prone to race conditions.
+
+Let's start with the simplest solution: **locks**. Every time we want to modify a
+node, either insert or delete, acquire an exclusive lock on that node. It means
+writes will block reads. But there’s a catch: we also have to acquire locks for
+all nodes we traverse through in the path because we might need to modify
+those nodes as well. In another word, during insertions and deletions, one
+must acquire `h` locks, where `h` is the height of the tree. It can cause lock
+contention at the root node, which reduces concurrency.
+
+<p>
+  B-link Tree, a variant of B-Tree, proposes a different way to approach this
+  problem. PostgreSQL B-Tree implementation is based on this variant. We will
+  discuss it further in
+  <a href="/btree-chronical/variations#b-link-tree" class="link">Part 4</a>.
+</p>
+
+<ChapterLink text="Continue to Part 3: Variations" href="/btree-chronical/variations" />
+
+</Layout>

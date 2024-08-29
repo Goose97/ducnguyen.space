@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  :root {
+    --img-extra-width: 0rem;
+    --img-margin: 2rem;
+    --content-width: 45rem;
+    --aside-margin: 6rem;
+    --aside-width: 15rem;
+  }
+
+  .custom-image {
+    width: calc(100% + var(--img-extra-width));
+    position: relative;
+    left: calc(0px - var(--img-extra-width) / 2);
+    margin: var(--img-margin) 0;
+    max-width: unset;
+  }
+
+  .main {
+    display: grid;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .main[data-has-aside] {
+    grid-template-areas:
+      "header"
+      "post-title"
+      "content"
+      "bottom-padding";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .main:not([data-has-aside]) {
+    grid-template-areas:
+      "header"
+      "post-title"
+      "content"
+      "bottom-padding";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* aside only visible on larger screens */
+  @media screen(xl) {
+    .main[data-has-aside] {
+      grid-template-areas:
+        "header header"
+        "post-title post-title"
+        "content aside"
+        "bottom-padding bottom-padding";
+      grid-template-columns: minmax(0, 1fr) var(--aside-width);
+      grid-column-gap: var(--aside-margin);
+    }
+  }
+
+  .header {
+    grid-area: header;
+  }
+
+  .post-title {
+    grid-area: post-title;
+  }
+
+  .content {
+    grid-area: content;
+    min-width: 0;
+    max-width: 65ch;
+  }
+
+  .aside {
+    grid-area: aside;
+  }
+
+  .bottom-padding {
+    grid-area: bottom-padding;
+  }
+
+  /* Slightly above md breakpoint */
+  @media (min-width: calc(768px + 4rem)) {
+    :root {
+      --img-extra-width: 2rem;
+    }
+  }
+
+  /* Slightly above lg breakpoint */
+  @media (min-width: calc(1024px + 4rem)) {
+    :root {
+      --img-extra-width: 8rem;
+    }
+  }
+
+  @media screen(xl) {
+    :root {
+      --img-extra-width: 0rem;
+      --aside-margin: 8rem;
+    }
+  }
+
+  @media screen(2xl) {
+    :root {
+      --img-extra-width: 4rem;
+      --img-margin: 3rem;
+      --aside-margin: 12rem;
+    }
+  }
+
+  /* Slightly above 2xl breakpoint */
+  @media (min-width: calc(1536px + 12rem)) {
+    :root {
+      --img-extra-width: 12rem;
+      --aside-margin: 12rem;
+    }
+  }
+
+  .line-dashed-vertical {
+    background-image: linear-gradient(
+      theme("colors.primary.600") 50%,
+      rgba(255, 255, 255, 0) 0%
+    );
+    background-position: right;
+    background-size: 100% 12px;
+    background-repeat: repeat-y;
+  }
+
+  .line-dashed-horizontal {
+    background-image: linear-gradient(
+      to right,
+      theme("colors.primary.600") 50%,
+      rgba(255, 255, 255, 0) 0%
+    );
+    background-position: bottom;
+    background-size: 12px 100%;
+    background-repeat: repeat-x;
+  }
+}

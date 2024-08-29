@@ -1,0 +1,90 @@
+---
+layout: "@layouts/Layout.astro"
+---
+
+<h1 class="my-12">
+  <div class="text-4xl font-bold">Ending</div>
+</h1>
+
+Wow, that was much longer than I expected. Congratulations if you've made it
+this far. Hopefully, you left this post with a bit more knowledge about B-Tree.
+Despite being half a century old, this data structure still has some intriguing
+concepts and new developments.
+
+If you have any queries or modification suggestions, please open an issue or PR on GitHub.
+
+## References
+
+If you are interested in learning more about B-Tree, here are some resources that helped me tremendously:
+
+<ol class="list-decimal pl-10">
+  <li>
+    <a href="https://dl.acm.org/doi/10.1145/1734663.1734671" rel="noopener noreferrer" target="_blank" class="link inline">
+      <span>Organization and maintenance of large ordered indices <em>(Rudolf Bayer and Edward M. McCreight, 1970)</em></span>
+    </a>
+    <span class="inline ml-1">: This is the original paper that introduced B-Tree and outlined
+      the variation that we later know as B+ Tree.</span>
+  </li>
+  <li>
+    <a href="https://dl.acm.org/doi/abs/10.1145/320521.320530" rel="noopener noreferrer" target="_blank" class="link inline">
+      <span>Prefix B-trees <em>(Rudolf Bayer and Karl Unterauer, 1977)</em></span>
+    </a>
+    <span class="inline ml-1">: This paper presented the suffix truncation optimization.</span>
+  </li>
+  <li>
+    <a href="https://dl.acm.org/doi/10.1145/319628.319663" rel="noopener noreferrer" target="_blank" class="link inline">
+      <span>Efficient locking for concurrent operations on B-trees <em>(Philip L. Lehman and Shibing Yao, 1981)</em></span>
+    </a>
+    <span class="inline ml-1">: This paper introduced the B Link Tree variation.</span>
+  </li>
+  <li>
+    <a href="https://dl.acm.org/doi/10.5555/645484.656370" rel="noopener noreferrer" target="_blank" class="link inline">
+      <span class="inline ml-1">B-Tree Indexes and CPU Caches <em>(Goetz Graefe
+        and Per-Åke Larson, 2001)</em></span>
+    </a>
+    <span class="inline ml-1">: This paper discussed techniques to
+      leverage CPU caches to improve B-Tree performance.</span>
+  </li>
+  <li>
+    <span>Modern B-Tree Techniques <em>(Goetz Graefe, 2010)</em></span>
+    <span class="inline ml-1">: This book compiled various optimizations and variations of
+      B-Tree. It touched multiple areas, like B-Tree in database transansations
+      context, index creation/delete, or query procressing.</span>
+  </li>
+  <li>
+    <span>Database Internals: A Deep-Dive Into How Distributed Data Systems Work <em>(Alex Petrov, 2019)</em></span>
+    <span class="inline ml-1">: This book has few excellent chapters talking about specific implementation details of B-Tree. Highly recommend this.</span>
+  </li>
+  <li>
+    <span>Postgres mailing list: I found a ton of hidden gems regarding B-Tree.</span>
+    <ul class="list-disc pl-10">
+      <li>
+        <a
+          href="https://www.postgresql.org/message-id/CAGTBQpYbhy-ahV6qzq3Yqp43uS2UrukNmf-GZxHckJVrSPj8VA%40mail.gmail.com"
+          rel="noopener noreferrer"
+          target="_blank"
+          class="link inline"
+        ><span>Prefix compression</span></a>
+      </li>
+      <li>
+        <a
+          href="https://www.postgresql.org/message-id/CAH2-Wzn5XbCzk6u0GL%2BuPnCp1tbrp2pJHJ%3D3bYT4yQ0_zzHxmw%40mail.gmail.com"
+          rel="noopener noreferrer"
+          target="_blank"
+          class="link inline"
+        ><span>Suffix truncation</span></a>
+      </li>
+      <li>
+        <a
+          href="https://wiki.postgresql.org/wiki/Key_normalization"
+          rel="noopener noreferrer"
+          target="_blank"
+          class="link inline"
+        ><span>Key normalization</span></a>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+
+

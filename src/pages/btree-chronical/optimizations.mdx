@@ -1,0 +1,261 @@
+---
+---
+
+import { Image } from 'astro:assets';
+import Layout from "@layouts/Layout.astro";
+import PartHeading from "@components/PartHeading.astro";
+import AnimationVideo from "@components/preact/AnimationVideo";
+import TableOfContents from "@components/preact/TableOfContents";
+import Callout from "@components/Callout.astro";
+import ChapterLink from "@components/ChapterLink.astro";
+import slottedPage from '@images/slotted-page.png';
+
+<Layout stickyAsideId="sticky-aside">
+<div slot="aside" id="sticky-aside" class="sticky mt-12">
+  <TableOfContents
+    headings={[
+      { depth: 2, slug: 'sibling-pointers', text: 'Sibling pointers' },
+      { depth: 2, slug: 'key-normalization', text: 'Key normalization' },
+      { depth: 2, slug: 'prefix-compression', text: 'Prefix compression' },
+      { depth: 2, slug: 'suffix-truncation', text: 'Suffix truncation' },
+      {
+        depth: 2,
+        slug: 'poor-mans-normalized-keys',
+        text: 'Poor man’s normalized keys'
+      }
+    ]}
+    client:only="preact"
+  />
+  <div class="mt-4 flex justify-between text-base text-stone-600">
+    <a href="/btree-chronical/variations" class="hover:underline underline-offset-4">« Part 3</a>
+    <a href="/btree-chronical/ending" class="hover:underline underline-offset-4">Ending »</a>
+  </div>
+</div>
+
+
+<PartHeading text="Optimizations" part={4} />
+
+We can apply a number of optimizations on the baseline design of B-Tree,
+each with different trade-offs. They aim to provide more compact tree
+structure, better tree navigation or optimize cache utilization.
+
+## Sibling pointers
+
+The name is self-explanatory: adding pointers to the left or right sibling to
+each node. Effectively, each level will become a linked list (or even a doubly
+linked list). This helps us quickly traverse the tree, which is useful during
+range scans. This technique is applied in many variations, both B+ Tree and B
+Link Tree as, we discussed previously.
+
+## Key normalization
+
+This technique encodes keys into a binary string. The encoding scheme must
+preserve the key sorted order and comparison result. In another word, if A is
+greater than B, then the normalization of A is also greater than the normalization
+of B, and vice versa.
+
+<div class="w-[50ch] flex mx-auto my-5 tabular-nums font-mono">
+  <div class="flex flex-col flex-1">
+    <span class="font-semibold text-center border-b border-gray-400 mx-4 mb-2">Original</span>
+    <span class="text-center leading-10">(<span class="text-primary-600">Baz</span>, <span class="text-secondary-600">12</span>)</span>
+    <span class="text-center leading-10">(<span class="text-primary-600">Bar</span>, <span class="text-secondary-600">42</span>)</span>
+  </div>
+  <div class="flex flex-col flex-1">
+    <span class="font-semibold text-center border-b border-gray-400 mx-4 mb-2">Normalized</span>
+    <span class="text-center leading-10">
+      <span class="text-primary-600">10001101001</span>
+      <span class="text-secondary-600">00001100</span>
+    </span>
+    <span class="text-center leading-10">
+      <span class="text-primary-600">10001100011</span>
+      <span class="text-secondary-600">00101010</span>
+    </span>
+  </div>
+</div>
+
+Key normalization improves overall performance since binary strings are faster
+to compare (we basically compare integers). A simple `memcmp` is all we need in
+all cases. But the true power of this technique is that **binary strings are
+extremely flexible**. Normalized keys are essentially strings of bytes, or
+strings of wider integers that can be easily concatenated, inverted, and
+truncated. This optimization unlocks a whole set of other optimizations:
+**prefix compression** and **suffix truncation**, which we will discuss later.
+
+However, there are several drawbacks:
+
+<ol class="list-decimal pl-10">
+  <li>The normalized key tends to be bigger than the original key.</li>
+  <li>We cannot recover the original key from the normalized one. This affects
+    cases where the original key is required, for example, PostgreSQL
+    index-only scans. To alleviate this, implementations can apply
+    normalization only on internal nodes. We don't need their original values,
+    we just need to perform comparisons.</li>
+</ol>
+
+## Prefix compression
+
+Consider this sorted sequence of keys inside a node:
+
+<div class="w-fit flex gap-8 mx-auto my-5 font-mono">
+  <span><span class="text-primary-600">app</span>le</span>
+  <span><span class="text-primary-600">app</span>lication</span>
+  <span><span class="text-primary-600">app</span>lication_logs</span>
+  <span><span class="text-primary-600">apr</span>icot</span>
+</div>
+
+Notice the common prefix? How about we only store it once? That's the exact
+idea of prefix compression. It can significantly reduce the key size, which
+leads to more keys in internal nodes. And as we mentioned times and times
+before, higher fanout means faster B-Tree. Also, comparisons when searching
+don't need to consider the prefix part.
+
+The sorted nature of B-Tree enables this optimization. Since keys are ordered,
+neighbor keys are similar. In fact, they can be equal in the first few leading
+bytes, or even all bytes in case they are duplicated.
+
+It's possible to perform prefix compression without key normalization. But
+it would require a fair deal of bookeeping, even if they were applied only to
+entire key fields rather than to individual bytes. With key normalization, the
+implementation is straightforward, since all keys are just binary strings.
+
+In the context of database indexes, prefix compression effects can be significant
+in certain cases. A typical multi-column index, especially with leading fields
+as foreign keys, might look like this:
+
+<div class="w-full flex flex-col font-mono my-5">
+  <span class="leading-10">Table: customer_addresses</span>
+  <div class="flex flex-col mx-auto">
+    <span class="font-semibold text-center border-b border-gray-400 px-4 mb-2">Index: (country_id, city_id)</span>
+    <span class="text-center leading-10">(Viet Nam, Ha Noi)</span>
+    <span class="text-center leading-10">(Viet Nam, Ha Noi)</span>
+    <span class="text-center leading-10">(Viet Nam, Hai Phong)</span>
+    <span class="text-center leading-10">(Viet Nam, Sai Gon)</span>
+  </div>
+</div>
+
+Foreign keys increase the chance of encountering duplicate values. In the above
+example (though contrived), suffix compression can easily reduce the node size
+by a third. The trade-off is the added complexity and runtime overhead
+(*original keys must be recreated on every operation*). Sometimes, it's not
+worth it if the tree doesn't have that many duplicated keys.
+
+## Suffix truncation
+
+Imagine we have a leaf node like this and we need to split it due to a new
+insert. Let say we split right in the middle. What should the separator key be?
+
+<div class="flex flex-col items-center mt-5 mb-9 font-mono">
+  <span>Separator key: <span class="text-primary-600">???</span></span>
+  <div class="w-fit relative flex justify-center gap-8 border border-gray-400 mx-auto mt-4 px-8 py-4">
+    <div class="flex gap-8">
+      <span>Amy</span>
+      <span>Boyle</span>
+      <span>Holt</span>
+    </div>
+    <div class="absolute left-1/2 -top-4 -bottom-4 -translate-x-[0.5ch] w-[2px] line-dashed-vertical"></div>
+    <div class="flex gap-8">
+      <span>Jake</span>
+      <span>Rosa</span>
+      <span>Terry</span>
+    </div>
+  </div>
+</div>
+
+The simplest solution is to choose the lowest value from the right node, `Jake`.
+But can we do better? Remember, the only function of separator keys is to
+divide the key space into two halves. One is strictly smaller than it, and the
+other one is greater or equal to it. We can choose any value, as long as it does
+its job.
+
+In this case, `J` is the optimal choice. Part of the original key `Jake` gets
+truncated, hence the name suffix truncation.
+
+<div class="mx-auto my-5 w-fit font-mono">
+  <span>Amy, Boyle, Holt &lt; <span class="text-primary-600">J</span> &lt; Jake, Rosa, Terry</span>
+</div>
+
+If performing suffix truncation on arbitrary bytes like the above example is
+complex, you can apply it to the whole index field. Let's bring back the
+*customer_addresses* table example.
+
+<div class="w-fit flex flex-col font-mono my-5 mx-auto">
+  <div class="flex flex-col mx-auto">
+    <span class="font-semibold text-center border-b border-gray-400 px-4 mb-2">Index: (country_id, city_id)</span>
+    <span class="text-center leading-10">(USA, Los Angeles)</span>
+    <span class="text-center leading-10">(USA, New York)</span>
+    <div class="w-full h-[2px] line-dashed-horizontal"></div>
+    <span class="text-center leading-10">(Viet Nam, Ha Noi)</span>
+    <span class="text-center leading-10">(Viet Nam, Sai Gon)</span>
+  </div>
+</div>
+
+If we split right in the middle, we can choose `(Viet Nam, -∞)` as the
+separator key. The negative infinity can be compactly represented to save bytes,
+similar to how databases represent NULL values. These negative infinity can
+also make comparisons faster since we can add a fast path specifically for
+them.
+
+Similar to prefix compression, this technique aims to reduce the key size and
+leads to higher fanout. A B-Tree implementation with suffix truncation is
+sometimes said to be a "prefix B-Tree". Key normalization greatly simplifies
+the implementation and increases the effectiveness, as we only have to deal
+with binary strings as keys.
+
+That said, suffix truncation has one disadvantage. It can't be applied to leaf
+nodes, just internal nodes. For the same reason in prefix compression, it's not
+possible to recover the original keys. The internal nodes only make up about 1%
+of the total tree size, Therefore, the size reduction is often not noticeable.
+
+<Callout title="Picking a split point">
+  <p>With suffix truncation enabled, sometimes it's better <b>not</b> to split
+    at the middle but rather pick a split point, which yields a smaller
+    separator key. Sounds odd, right?</p>
+  <p>Consider this case:</p>
+  <div class="w-fit flex justify-center gap-8 mx-auto my-4 font-mono">
+    <span>John Lennon</span>
+    <span>John Smith</span>
+    <span>John Wick</span>
+    <span>Micheal Kane</span>
+  </div>
+  <p>If we split in the middle, the best separator key we can do is `John W`.
+    But if we accept an uneven split and split after the third element, the
+    separator key would be `M`. An interesting trade-off to consider.</p>
+</Callout>
+
+## Poor man's normalized keys
+
+So far, we mentioned optimizations applied to the key level. Let's zoom out a
+little bit and look at B-Tree nodes. As we mentioned in Part 2, B-Tree node
+with variable length keys is commonly implemented as slotted page.
+
+<Image src={slottedPage} alt="An illustration of slotted page disk representation" class="custom-image" />
+
+This scheme incurs some extra cost of memory accesses when searching
+for keys. Each jump during binary search will require two memory accesses: one
+for the **offset pointer** and one for the **key content**. For instance, if
+our node has 16 keys, we will need at most 10 accesses.
+
+One trick is to store a few leading bytes of the key along with the offset pointer,
+basically making it "fat". Let's consider this example when we search for
+`avocado` key:
+
+<div class="w-fit flex justify-center gap-8 mx-auto my-5">
+  <span><span class="text-primary-600">app</span>le</span>
+  <span><span class="text-primary-600">apr</span>icot</span>
+  <span><span class="text-primary-600">ban</span>ana</span>
+  <span><span class="text-primary-600">che</span>rry</span>
+</div>
+
+With 3 leading bytes, we can confidently say that the key does not exist
+without ever touching the actual keys. This is because those tiny bits of the
+original keys are **enough to distinguish them**. This fixed-size prefix is
+typically called a *poor man's normalized key* in literature.
+
+Nonetheless, this technique only works well if prefix compression presents. With
+common prefix truncated away, even a small poor man key (2 or 4 bytes) is
+enough to avoid some memory accesses. Otherwise, even a large poor man key
+might not be effective, especially in the leaf nodes, where keys are highly similar.
+
+<ChapterLink text="Continue to Ending" href="/btree-chronical/ending" />
+
+</Layout>

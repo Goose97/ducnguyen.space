@@ -1,0 +1,119 @@
+---
+import '@fontsource-variable/lora'
+import '@fontsource/zilla-slab/600.css'
+import '@fontsource/zilla-slab/700.css'
+import BottomPadding from '@components/BottomPadding.astro'
+import '../styles/tailwind.base.css'
+
+type Props = {
+  title?: string
+  description?: string
+  frontmatter?: Record<string, string>
+  stickyAsideId?: string
+}
+
+const { title, description, frontmatter, stickyAsideId } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="px-4 md:px-8">
+    <main class="main" data-has-aside={Astro.slots.has("aside")}>
+      <header class="header py-6">
+        <nav>
+          <a class="font-display font-semibold">ducnguyen.space</a>
+        </nav>
+      </header>
+
+      {
+        frontmatter?.title && (
+          <h1 class="post-title font-display text-6xl text-center tracking-tight max-w-4xl px-4 mx-auto mb-12 mt-0 md:mb-28 md:mt-24">
+            {frontmatter.title}
+          </h1>
+        )
+      }
+
+      <div class="content">
+        <slot />
+      </div>
+
+      {
+        Astro.slots.has("aside") ? (
+          <aside class="hidden xl:block aside">
+            <slot name="aside" />
+          </aside>
+        ) : null
+      }
+
+      <BottomPadding />
+    </main>
+  </body>
+  <script define:vars={{ stickyAsideId }} is:inline>
+    if (stickyAsideId) {
+      const stickyAside = document.getElementById(stickyAsideId);
+
+      if (stickyAside) {
+        const stickyAsideRect = stickyAside.getBoundingClientRect();
+        stickyAside.style.top = `${stickyAsideRect.top}px`;
+      }
+    }
+  </script>
+</html>
+
+<style is:global>
+  @font-face {
+    font-family: "Iosevka";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/iosevka-custom-latin-400-normal.woff2") format("woff");
+  }
+
+  @font-face {
+    font-family: "Iosevka";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("/fonts/iosevka-custom-latin-600-normal.woff2") format("woff");
+  }
+
+  html {
+    @apply bg-white font-body;
+  }
+
+  body {
+    @apply text-lg leading-8;
+  }
+
+  h2 {
+    @apply text-3xl font-semibold mt-20 mb-8 font-display;
+  }
+
+  h3 {
+    @apply text-2xl mt-14 mb-3 font-display;
+  }
+
+  p,
+  ul,
+  ol {
+    @apply mb-5 text-black;
+    text-wrap: pretty;
+  }
+
+  .link {
+    @apply underline underline-offset-6 decoration-2 hover:decoration-primary-700;
+  }
+
+  code {
+    @apply text-primary-600 bg-primary-50 rounded-sm;
+    padding: 1px 2px;
+  }
+</style>

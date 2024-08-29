@@ -1,0 +1,87 @@
+---
+import '@fontsource-variable/lora'
+import '@fontsource/zilla-slab/600.css'
+import '../styles/tailwind.base.css'
+
+type Props = {
+  title?: string
+  description?: string
+  frontmatter?: Record<string, string>
+  stickyAsideId?: string
+}
+
+const blogEntries = {
+  '2024': [
+    {
+      href: '/btree-chronical/intro',
+      title: 'B-Tree chronical',
+      date: 'Oct 3, 2024',
+    },
+  ],
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="description"
+      content="Personal blog of Duc Nguyen. Rambling about computer science, programming, and life."
+    />
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>ducnguyen.space | Homepage</title>
+  </head>
+  <body class="px-4 md:px-8">
+    <header class="header py-6">
+      <nav>
+        <a class="font-display font-semibold">ducnguyen.space</a>
+      </nav>
+    </header>
+
+    <main>
+      <h1 class="sr-only">ducnguyen.space homepage</h1>
+
+      {
+        Object.entries(blogEntries).map(([year, entries]) => {
+          return (
+            <article class="mb-12">
+              <h2 class="font-display font-semibold">{year}</h2>
+              <ul class="flex flex-col gap-4">
+                {entries.map((entry) => (
+                  <li class="gap-2">
+                    <a
+                      href={entry.href}
+                      class="underline underline-offset-6 decoration-2 decoration-stone-300 hover:decoration-stone-500"
+                    >
+                      {entry.title}
+                    </a>
+                    <span class="text-sm italic text-stone-500">
+                      {entry.date}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          );
+        })
+      }
+    </main>
+  </body>
+
+  <style is:global>
+    html {
+      @apply bg-white font-body;
+    }
+
+    body {
+      @apply text-lg leading-8;
+    }
+
+    h2 {
+      @apply text-2xl mt-14 mb-3 font-display;
+    }
+  </style>
+</html>

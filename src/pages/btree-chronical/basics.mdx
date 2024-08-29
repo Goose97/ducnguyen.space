@@ -1,0 +1,279 @@
+---
+---
+
+import { Image } from 'astro:assets';
+import Callout from "@components/Callout.astro";
+import Layout from "@layouts/Layout.astro";
+import PartHeading from "@components/PartHeading.astro";
+import AnimationVideo from "@components/preact/AnimationVideo";
+import TableOfContents from "@components/preact/TableOfContents";
+import ChapterLink from "@components/ChapterLink.astro";
+import binaryTree from '@images/binary-tree.png';
+import plainBtree from '@images/plain-btree.png';
+
+<Layout stickyAsideId="sticky-aside">
+<div slot="aside" id="sticky-aside" class="sticky mt-12">
+  <TableOfContents
+    headings={[
+      {
+        depth: 2,
+        slug: 'b-tree-and-binary-tree',
+        text: 'B-Tree and binary tree'
+      },
+      {
+        depth: 2,
+        slug: 'terminology-and-invariants',
+        text: 'Terminology and invariants'
+      },
+      { depth: 2, slug: 'basic-operations', text: 'Basic operations' },
+      { depth: 3, slug: 'lookup', text: 'Lookup' },
+      { depth: 3, slug: 'insert', text: 'Insert' },
+      { depth: 3, slug: 'delete', text: 'Delete' }
+    ]}
+    client:only="preact"
+  />
+  <div class="mt-4 flex justify-between text-base text-stone-600">
+    <a href="/btree-chronical/intro" class="hover:underline underline-offset-4">« Intro</a>
+    <a href="/btree-chronical/databases" class="hover:underline underline-offset-4">Part 2 »</a>
+  </div>
+</div>
+
+<PartHeading text="The Basics" part={1} />
+
+The one thing I love about B-Tree is that the core idea is crazy simple. I
+can't help myself nodding enthusiastically while reading about it: "Hmm, this
+makes sense. Anybody can think of this.". But before getting to B-Tree, let's
+look at a simpler data structure, binary tree.
+
+## B-Tree and binary tree
+
+<p>
+  <a href="https://en.wikipedia.org/wiki/Binary_tree" rel="noopener noreferrer"
+    target="_blank" class="link">Binary tree</a>,
+  like the name suggests, is a tree data structure. Each node has
+  Binary tree, like the name suggests, is a tree data structure. Each node has
+  two children. The left child contains all children smaller than the current
+  node, and the right child contains all children bigger than the current node.
+  The idea is to **divide the key space into smaller spaces on each level**.
+  During lookup, as we traverse down the tree, the number of keys you have to
+  search keeps shrinking.
+</p>
+
+<Image src={binaryTree} alt="An illustration of the binary tree data structure" class="my-8 max-w-xs mx-auto" />
+
+B-Tree takes the core idea and tweaks it a bit. What if we can have more than
+two children? Yes, that is B-Tree. The number of children is configurable,
+commonly referred to as **degree** (or **order**) in academic literature. We
+could consider binary tree as a special case of B-Tree with degree 2. We say
+that B-Tree has higher fanout (the number of children a node can have) than
+binary tree.
+
+<Image src={plainBtree} alt="An illustration of the B-Tree data structure" class="custom-image" />
+
+<Callout title="B+ Tree">
+  <p>The term B-Tree refers to a family of data structures sharing a similar
+    design. However, this post will choose
+    <a
+      href="https://en.wikipedia.org/wiki/B%2B_tree"
+      rel="noopener noreferrer"
+      target="_blank"
+      class="link"
+    >B+ Tree</a>,
+    a variant of B-Tree, as the
+    baseline to discuss. The reason is B+ Tree is more popular nowadays and
+    therefore more relevant. Most literature and implementations in databases
+    (both MySQL and PostgreSQL) refer to them as B-Tree.</p>
+  <p class="!mb-2">Here's the difference:</p>
+  <ul class="list-disc pl-10">
+    <li>B-Tree allows storing values on any level: root, internal, and leaf
+      nodes (like binary tree).</li>
+    <li>B+ Tree stores values only in leaf nodes. Root and internal nodes store
+      only separator keys used to guide the search algorithm to the associated
+      value stored on the leaf level. More on this
+      <a
+        href="/btree-chronical/variations#b-plus-tree"
+        rel="noopener noreferrer"
+        target="_blank"
+        class="link"
+      >later</a>.</li>
+  </ul>
+</Callout>
+
+## Terminology and invariants
+
+To establish a shared vocabulary, here are some terms that I will mention
+throughout this blog post:
+
+<ul class="list-disc pl-10">
+  <li><strong>B-Tree degree k</strong>: this number determines the fanout of the tree.</li>
+  <li>As we said above, B-Tree only stores values at the leaf nodes. We
+    distinguish nodes into 3 types:</li>
+  <ol class="list-decimal pl-10">
+    <li><em>Root node:</em> this has no parents and is at the top of the tree.</li>
+    <li><em>Leaf nodes:</em> these are the bottom layer nodes that have no
+      child nodes. This is where we store values.</li>
+    <li><em>Internal nodes:</em> these are nodes in between, connecting the
+      root node to leaf nodes. They only store keys to separate the key space
+      into different ranges. We call them <strong>separator keys</strong>.
+      These nodes serve as guide posts to locate the correct leaf node that
+      holds your key.</li>
+  </ol>
+</ul>
+
+The design of B-Tree has a few invariants. Remember these, because they play a
+big role in how the data structure operates, as well as choosing design
+trade-offs.
+
+<ol class="list-disc pl-10">
+  <li>Given a tree with degree k, a node (except the root node) must have at
+    least k children and at most 2k children. <strong>In another word, a node
+      must always be at least half full.</strong></li>
+  <li><strong>The keys inside each node must be ordered</strong>. This is not a
+    strict requirement, but it's beneficial to maintain a sorted order. Most
+    real implementations do this.</li>
+</ol>
+
+## Basic operations
+
+Let's look through some basic operations that B-Tree support: lookup, insert and delete.
+
+### Lookup
+
+B-Tree can perform <em>single key lookup</em> (key = 42) or <em>range scan</em>
+(30 < key < 40). For single key lookup, the process is comparable
+to binary tree. This description outlines the algorithm's implementation:
+
+<ol
+  class="list-decimal pl-10">
+  <li>Start at the root node.</li>
+  <li>Choose the correct child that contains your target key by comparing it
+    with the separator keys. Since the separator keys are sorted, we can
+    perform binary search on them.</li>
+  <li>Repeat step 2 to traverse down the tree.</li>
+  <li>If you reach a leaf node and it contains your target key, the lookup
+    ends. If the leaf node doesn't contain your target key, or you can't find
+    the leaf node (there's no correct range in the internal nodes), it means
+    your key does not exist in the data structure, and the lookup ends.</li>
+</ol>
+
+Let's look at an illustration of the lookup process:
+
+<AnimationVideo
+  src="/videos/lookup.mp4"
+  client:load
+/>
+
+<p>
+  Range scans start off by looking up the lower bound value. Once we found the
+  lower bound, start scanning the sibling keys. Some B-Tree variants have
+  <a
+    href="/btree-chronical/optimizations#sibling-pointers"
+    rel="noopener noreferrer"
+    target="_blank"
+    class="link">pointers between sibling nodes</a>,
+  which can speed up the scanning phase.
+</p>
+
+### Insert
+
+Since B-Tree is an ordered data structure, insertion needs to search for the
+correct slot. After we find the place, we insert the new value into the leaf page.
+
+But, there's a catch. Each node has a capacity of 2k keys, where k is the
+degree of the B-Tree. If the leaf node is full, we say that the node is
+*overflowed*. Two common approaches to dealing with this:
+
+<ol class="list-decimal pl-10" start="1">
+  <li><b>Split the overflowed node</b>: The overflowed node is split into two nodes.
+    Choosing the split point is a problem on its own, but the most common way
+    is to <em>split in the middle</em>. After that, a new separator key is
+    added to the parent node to point to the newly split node. If the parent
+    node is again overflowed, repeat the split process. The split process can
+    cascade upward from the leaf all the way to the root. This is the way that
+    B-Tree grows in height.</li>
+</ol>
+
+<div class="pl-10">
+  <AnimationVideo
+    src="/videos/insert-split.mp4"
+    keyMoments={[
+      { time: 1.5, text: "Find insert position" },
+      { time: 7, text: "Insert and split leaf node" },
+      { time: 12, text: "Split cascades up to internal node" },
+      { time: 19, text: "Split cascades up to root node" },
+      { time: 27, text: "Create new root node" },
+    ]}
+    client:load
+  />
+</div>
+
+<ol class="list-decimal pl-10" start="2">
+  <li><b>Redistribute the keys</b>: The keys from the overflowed node are
+    redistributed to sibling nodes. Then, the parent node is updated to reflect
+    the new changes.</li>
+</ol>
+
+<div class="pl-10">
+  <AnimationVideo
+    src="/videos/insert-redistribute.mp4"
+    keyMoments={[
+      { time: 1.5, text: "Find insert position" },
+      { time: 7, text: "Insert new key" },
+      { time: 12, text: "Redistribute keys" },
+      { time: 15, text: "Update parent node" },
+    ]}
+    client:load
+  />
+</div>
+
+### Delete
+
+Same as insertion, you first lookup the key then delete it. Simple right?
+Not so fast. Each node in B-Tree must include at least k children, where k is
+the degree of the B-Tree. If the node has fewer children, we say that the node
+is *underflowed*. Two common ways to solve this:
+
+<ol class="list-decimal pl-10" start="1">
+  <li><b>Redistribute the keys</b>: You can steal keys from sibling nodes.
+    After that, update the parent node to adjust for the new key ranges.</li>
+</ol>
+
+<div class="pl-10">
+  <AnimationVideo
+    src="/videos/delete-redistribute.mp4"
+    keyMoments={[
+      { time: 1.5, text: "Lookup key" },
+      { time: 8, text: "Delete key" },
+      { time: 12, text: "Redistribute keys" },
+      { time: 15, text: "Update parent node" },
+    ]}
+    client:load
+  />
+</div>
+
+<ol class="list-decimal pl-10" start="2">
+  <li><b>Merge with sibling nodes</b>: If there is enough space, two nodes can
+    merge into one. After the merge, there will be one less child, and the
+    parent node must be updated to reflect this. This in turn could cause the
+    parent node to underflow, and again, you can choose to redistribute or
+    merge. The merge process can cascade up to the root. When two last children
+    of the root is merge, the root is removed and the newly merged node becomes
+    the root. This is the way that B-Tree shrinks in height.</li>
+</ol>
+
+<div class="pl-10">
+  <AnimationVideo
+    src="/videos/delete-merge.mp4"
+    keyMoments={[
+      { time: 1.5, text: "Lookup key" },
+      { time: 8, text: "Delete key" },
+      { time: 11, text: "Merge nodes" },
+      { time: 14, text: "Update parent node" },
+    ]}
+    client:load
+  />
+</div>
+
+<ChapterLink text="Continue to Part 2: Databases" href="/btree-chronical/databases" />
+
+</Layout>
