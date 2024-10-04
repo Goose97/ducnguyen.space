@@ -7,7 +7,9 @@
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint:text": "vale --config=.vale.ini --glob='*.mdx' --no-exit .",
+    "lint:code": "biome check"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.1",
