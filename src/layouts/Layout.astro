@@ -6,24 +6,23 @@ import BottomPadding from '@components/BottomPadding.astro'
 import '../styles/tailwind.base.css'
 
 type Props = {
-  title?: string
-  description?: string
+  postTitle?: string
   frontmatter?: Record<string, string>
   stickyAsideId?: string
 }
 
-const { title, description, frontmatter, stickyAsideId } = Astro.props
+const { postTitle, frontmatter, stickyAsideId } = Astro.props
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
+    <meta name="description" content={frontmatter?.description} />
     <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <title>{frontmatter?.title}</title>
   </head>
   <body class="px-4 md:px-8">
     <main class="main" data-has-aside={Astro.slots.has("aside")}>
@@ -34,9 +33,9 @@ const { title, description, frontmatter, stickyAsideId } = Astro.props
       </header>
 
       {
-        frontmatter?.title && (
+        postTitle && (
           <h1 class="post-title font-display text-6xl text-center tracking-tight max-w-4xl px-4 mx-auto mb-12 mt-0 md:mb-28 md:mt-24">
-            {frontmatter.title}
+            {postTitle}
           </h1>
         )
       }
