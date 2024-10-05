@@ -1,4 +1,6 @@
 ---
+title: "B-Tree Under a Microscope"
+description: "A deep dive into the B-Tree data structure: Learn everything from basic operations to variations and various optimizations."
 ---
 
 import { Image } from 'astro:assets';
@@ -27,8 +29,8 @@ import slottedPage from '@images/slotted-page.png';
     client:only="preact"
   />
   <div class="mt-4 flex justify-between text-base text-stone-600">
-    <a href="/btree-chronical/variations" class="hover:underline underline-offset-4">« Part 3</a>
-    <a href="/btree-chronical/ending" class="hover:underline underline-offset-4">Ending »</a>
+    <a href="/btree-under-a-microscope/variations" class="hover:underline underline-offset-4">« Part 3</a>
+    <a href="/btree-under-a-microscope/ending" class="hover:underline underline-offset-4">Ending »</a>
   </div>
 </div>
 
@@ -256,6 +258,6 @@ common prefix truncated away, even a small poor man key (2 or 4 bytes) is
 enough to avoid some memory accesses. Otherwise, even a large poor man key
 might not be effective, especially in the leaf nodes, where keys are highly similar.
 
-<ChapterLink text="Continue to Ending" href="/btree-chronical/ending" />
+<ChapterLink text="Continue to Ending" href="/btree-under-a-microscope/ending" />
 
 </Layout>

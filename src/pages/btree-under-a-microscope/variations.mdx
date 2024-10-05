@@ -1,4 +1,6 @@
 ---
+title: "B-Tree Under a Microscope"
+description: "A deep dive into the B-Tree data structure: Learn everything from basic operations to variations and various optimizations."
 ---
 
 import { Image } from 'astro:assets';
@@ -26,8 +28,8 @@ import bLinkTree from '@images/b-link-tree.png';
     client:only="preact"
   />
   <div class="mt-4 flex justify-between text-base text-stone-600">
-    <a href="/btree-chronical/databases" class="hover:underline underline-offset-4">« Part 2</a>
-    <a href="/btree-chronical/optimizations" class="hover:underline underline-offset-4">Part 4 »</a>
+    <a href="/btree-under-a-microscope/databases" class="hover:underline underline-offset-4">« Part 2</a>
+    <a href="/btree-under-a-microscope/optimizations" class="hover:underline underline-offset-4">Part 4 »</a>
   </div>
 </div>
 
@@ -170,6 +172,6 @@ With this scheme, insert will require *at most three locks* at any given time:
 the node to insert, the new split node, and the parent node. Lookup doesn't
 need any locks, therefore isn't blocked by insert.
 
-<ChapterLink text="Continue to Part 4: Optimizations" href="/btree-chronical/optimizations" />
+<ChapterLink text="Continue to Part 4: Optimizations" href="/btree-under-a-microscope/optimizations" />
 
 </Layout>

@@ -1,4 +1,6 @@
 ---
+title: "B-Tree Under a Microscope"
+description: "A deep dive into the B-Tree data structure: Learn everything from basic operations to variations and various optimizations."
 ---
 
 import { Image } from 'astro:assets';
@@ -42,8 +44,8 @@ import slottedPageFragmentation from '@images/slotted-page-fragmentation.png';
     client:only="preact"
   />
   <div class="mt-4 flex justify-between text-base text-stone-600">
-    <a href="/btree-chronical/basics" class="hover:underline underline-offset-4">« Part 1</a>
-    <a href="/btree-chronical/variations" class="hover:underline underline-offset-4">Part 3 »</a>
+    <a href="/btree-under-a-microscope/basics" class="hover:underline underline-offset-4">« Part 1</a>
+    <a href="/btree-under-a-microscope/variations" class="hover:underline underline-offset-4">Part 3 »</a>
   </div>
 </div>
 
@@ -243,9 +245,9 @@ contention at the root node, which reduces concurrency.
   B-link Tree, a variant of B-Tree, proposes a different way to approach this
   problem. PostgreSQL B-Tree implementation is based on this variant. We will
   discuss it further in
-  <a href="/btree-chronical/variations#b-link-tree" class="link">Part 4</a>.
+  <a href="/btree-under-a-microscope/variations#b-link-tree" class="link">Part 4</a>.
 </p>
 
-<ChapterLink text="Continue to Part 3: Variations" href="/btree-chronical/variations" />
+<ChapterLink text="Continue to Part 3: Variations" href="/btree-under-a-microscope/variations" />
 
 </Layout>

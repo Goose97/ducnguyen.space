@@ -1,4 +1,6 @@
 ---
+title: "B-Tree Under a Microscope"
+description: "A deep dive into the B-Tree data structure: Learn everything from basic operations to variations and various optimizations."
 ---
 
 import { Image } from 'astro:assets';
@@ -33,8 +35,8 @@ import plainBtree from '@images/plain-btree.png';
     client:only="preact"
   />
   <div class="mt-4 flex justify-between text-base text-stone-600">
-    <a href="/btree-chronical/intro" class="hover:underline underline-offset-4">« Intro</a>
-    <a href="/btree-chronical/databases" class="hover:underline underline-offset-4">Part 2 »</a>
+    <a href="/btree-under-a-microscope/intro" class="hover:underline underline-offset-4">« Intro</a>
+    <a href="/btree-under-a-microscope/databases" class="hover:underline underline-offset-4">Part 2 »</a>
   </div>
 </div>
 
@@ -91,7 +93,7 @@ binary tree.
       only separator keys used to guide the search algorithm to the associated
       value stored on the leaf level. More on this
       <a
-        href="/btree-chronical/variations#b-plus-tree"
+        href="/btree-under-a-microscope/variations#b-plus-tree"
         rel="noopener noreferrer"
         target="_blank"
         class="link"
@@ -167,7 +169,7 @@ Let's look at an illustration of the lookup process:
   Range scans start off by looking up the lower bound value. Once we found the
   lower bound, start scanning the sibling keys. Some B-Tree variants have
   <a
-    href="/btree-chronical/optimizations#sibling-pointers"
+    href="/btree-under-a-microscope/optimizations#sibling-pointers"
     rel="noopener noreferrer"
     target="_blank"
     class="link">pointers between sibling nodes</a>,
@@ -274,6 +276,6 @@ is *underflowed*. Two common ways to solve this:
   />
 </div>
 
-<ChapterLink text="Continue to Part 2: Databases" href="/btree-chronical/databases" />
+<ChapterLink text="Continue to Part 2: Databases" href="/btree-under-a-microscope/databases" />
 
 </Layout>
