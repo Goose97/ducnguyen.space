@@ -1,6 +1,7 @@
 ---
 import '@fontsource-variable/lora'
 import '@fontsource/zilla-slab/600.css'
+import Favicon from '@components/Favicon.astro'
 import '../styles/tailwind.base.css'
 
 type Props = {
@@ -30,7 +31,7 @@ const blogEntries = {
       content="Personal blog of Duc Nguyen. Rambling about computer science, programming, and life."
     />
     <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <Favicon />
     <meta name="generator" content={Astro.generator} />
     <title>ducnguyen.space | Homepage</title>
   </head>

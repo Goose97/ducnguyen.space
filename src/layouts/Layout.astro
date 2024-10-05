@@ -3,6 +3,7 @@ import '@fontsource-variable/lora'
 import '@fontsource/zilla-slab/600.css'
 import '@fontsource/zilla-slab/700.css'
 import BottomPadding from '@components/BottomPadding.astro'
+import Favicon from '@components/Favicon.astro'
 import '../styles/tailwind.base.css'
 
 type Props = {
@@ -20,7 +21,7 @@ const { postTitle, frontmatter, stickyAsideId } = Astro.props
     <meta charset="UTF-8" />
     <meta name="description" content={frontmatter?.description} />
     <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <Favicon />
     <meta name="generator" content={Astro.generator} />
     <title>{frontmatter?.title}</title>
   </head>
