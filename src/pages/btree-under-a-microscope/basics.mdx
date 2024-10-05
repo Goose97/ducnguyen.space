@@ -10,7 +10,7 @@ import PartHeading from "@components/PartHeading.astro";
 import AnimationVideo from "@components/preact/AnimationVideo";
 import TableOfContents from "@components/preact/TableOfContents";
 import ChapterLink from "@components/ChapterLink.astro";
-import binaryTree from '@images/binary-tree.png';
+import binarySearchTree from '@images/binary-search-tree.png';
 import plainBtree from '@images/plain-btree.png';
 
 <Layout stickyAsideId="sticky-aside">
@@ -19,8 +19,8 @@ import plainBtree from '@images/plain-btree.png';
     headings={[
       {
         depth: 2,
-        slug: 'b-tree-and-binary-tree',
-        text: 'B-Tree and binary tree'
+        slug: 'b-tree-and-binary-search-tree',
+        text: 'B-Tree and binary search tree'
       },
       {
         depth: 2,
@@ -49,15 +49,15 @@ import plainBtree from '@images/plain-btree.png';
 The one thing I love about B-Tree is that the core idea is crazy simple. I
 can't help myself nodding enthusiastically while reading about it: "Hmm, this
 makes sense. Anybody can think of this.". But before getting to B-Tree, let's
-look at a simpler data structure, binary tree.
+look at a simpler data structure, binary search tree.
 
-## B-Tree and binary tree
+## B-Tree and binary search tree
 
 <p>
-  <a href="https://en.wikipedia.org/wiki/Binary_tree" rel="noopener noreferrer"
-    target="_blank" class="link">Binary tree</a>,
+  <a href="https://en.wikipedia.org/wiki/Binary_search_tree" rel="noopener noreferrer"
+    target="_blank" class="link">Binary search tree</a>,
   like the name suggests, is a tree data structure. Each node has
-  Binary tree, like the name suggests, is a tree data structure. Each node has
+  binary search tree, like the name suggests, is a tree data structure. Each node has
   two children. The left child contains all children smaller than the current
   node, and the right child contains all children bigger than the current node.
   The idea is to **divide the key space into smaller spaces on each level**.
@@ -65,14 +65,14 @@ look at a simpler data structure, binary tree.
   search keeps shrinking.
 </p>
 
-<Image src={binaryTree} alt="An illustration of the binary tree data structure" class="my-8 max-w-xs mx-auto" />
+<Image src={binarySearchTree} alt="An illustration of the binary search tree data structure" class="my-8 max-w-xs mx-auto" />
 
 B-Tree takes the core idea and tweaks it a bit. What if we can have more than
 two children? Yes, that is B-Tree. The number of children is configurable,
 commonly referred to as **degree** (or **order**) in academic literature. We
-could consider binary tree as a special case of B-Tree with degree 2. We say
+could consider binary search tree as a special case of B-Tree with degree 2. We say
 that B-Tree has higher fanout (the number of children a node can have) than
-binary tree.
+binary search tree.
 
 <Image src={plainBtree} alt="An illustration of the B-Tree data structure" class="custom-image" />
 
@@ -92,7 +92,7 @@ binary tree.
   <p class="!mb-2">Here's the difference:</p>
   <ul class="list-disc pl-10">
     <li>B-Tree allows storing values on any level: root, internal, and leaf
-      nodes (like binary tree).</li>
+      nodes (like binary search tree).</li>
     <li>B+ Tree stores values only in leaf nodes. Root and internal nodes store
       only separator keys used to guide the search algorithm to the associated
       value stored on the leaf level. More on this
@@ -147,7 +147,7 @@ Let's look through some basic operations that B-Tree support: lookup, insert and
 
 B-Tree can perform <em>single key lookup</em> (key = 42) or <em>range scan</em>
 (30 < key < 40). For single key lookup, the process is comparable
-to binary tree. This description outlines the algorithm's implementation:
+to binary search tree. This description outlines the algorithm's implementation:
 
 <ol
   class="list-decimal pl-10">
