@@ -1,13 +1,26 @@
 ---
+import GithubLogo from './GithubLogo.astro'
+
 type Props = {
   part: number
   text: string
+  githubLink?: string
 }
 
-const { part, text } = Astro.props
+const { part, text, githubLink } = Astro.props
 ---
 
-<h1 class="my-12">
-  <div>Part {part}</div>
-  <div class="text-4xl font-bold">{text}</div>
-</h1>
+<div class="flex justify-between items-end my-12">
+  <h1>
+    <div>Part {part}</div>
+    <div class="text-4xl font-bold">{text}</div>
+  </h1>
+
+  {
+    githubLink && <button class="text-base text-stone-500 hover:text-stone-700">
+      <a href={githubLink} rel="noopener noreferrer" target="_blank" class="flex items-center">
+        Suggest an edit <GithubLogo class="inline-block w-4 h-4 ml-1" />
+      </a>
+    </button>
+  }
+</div>
