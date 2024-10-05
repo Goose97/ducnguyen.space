@@ -7,23 +7,24 @@ import Favicon from '@components/Favicon.astro'
 import '../styles/tailwind.base.css'
 
 type Props = {
+  title: string
+  description: string
   postTitle?: string
-  frontmatter?: Record<string, string>
   stickyAsideId?: string
 }
 
-const { postTitle, frontmatter, stickyAsideId } = Astro.props
+const { title, description, postTitle, stickyAsideId } = Astro.props
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={frontmatter?.description} />
+    <meta name="description" content={description} />
     <meta name="viewport" content="initial-scale=1.0, width=device-width" />
     <Favicon />
     <meta name="generator" content={Astro.generator} />
-    <title>{frontmatter?.title}</title>
+    <title>{title}</title>
   </head>
   <body class="px-4 md:px-8">
     <main class="main" data-has-aside={Astro.slots.has("aside")}>
